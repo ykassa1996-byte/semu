@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEMU — Eau de Parfum</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&display=swap');
+
+  :root {
+    --pink: #F2B8C6;
+    --pink-light: #FAD4DF;
+    --pink-pale: #FDE8EF;
+    --pink-deep: #C97D96;
+    --pink-blush: #E8A0B4;
+    --cream: #FAF0E6;
+    --cream-warm: #F5E6D3;
+    --cream-deep: #E8D5C0;
+    --gothic: #9696a4;
+    --gothic-mid: #140D12;
+    --gothic-soft: #1E1218;
+    --glass-bg: rgba(242, 184, 198, 0.1);
+    --glass-border: rgba(250, 212, 223, 0.38);
+    --glass-shine: rgba(255, 255, 255, 0.22);
+    --blur: 18px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Times New Roman', Times, serif;
+    background: var(--gothic);
+    color: var(--cream);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ─── CURSOR ─── */
+  .cursor {
+    position: fixed; top: 0; left: 0; z-index: 9999;
+    width: 12px; height: 12px;
+    background: var(--pink);
+    border-radius: 50%;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    transition: transform 0.15s ease;
+  }
+  .cursor-ring {
+    position: fixed; top: 0; left: 0; z-index: 9998;
+    width: 36px; height: 36px;
+    border: 1px solid var(--pink-light);
+    border-radius: 50%;
+    pointer-events: none;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0.55;
+  }
+
+  /* ─── BACKGROUND ─── */
+  .bg-layer {
+    position: fixed; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 70% 55% at 15% 10%, rgba(201,125,150,0.14) 0%, transparent 60%),
+      radial-gradient(ellipse 55% 70% at 85% 85%, rgba(242,184,198,0.10) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 35% at 50% 50%, rgba(250,212,223,0.05) 0%, transparent 70%),
+      linear-gradient(180deg, #0A0A0F 0%, #140D12 40%, #0A0A0F 100%);
+    pointer-events: none;
+  }
+
+  .grid-overlay {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(242,184,198,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(242,184,198,0.035) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+    animation: gridDrift 20s linear infinite;
+  }
+  @keyframes gridDrift {
+    0% { background-position: 0 0; }
+    100% { background-position: 60px 60px; }
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 4rem;
+    height: 80px;
+    background: rgba(10,8,10,0.45);
+    backdrop-filter: blur(var(--blur));
+    -webkit-backdrop-filter: blur(var(--blur));
+    border-bottom: 1px solid var(--glass-border);
+    animation: fadeDown 1s ease forwards;
+  }
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+
+  .nav-logo {
+    font-family: 'UnifrakturMaguntia', cursive;
+    font-size: 2rem;
+    color: var(--pink);
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 30px rgba(242,184,198,0.45);
+  }
+
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a {
+    font-family: 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--pink-light);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity 0.3s, text-shadow 0.3s;
+  }
+  .nav-links a:hover { opacity: 1; text-shadow: 0 0 20px var(--pink); }
+
+  .nav-cta {
+    font-family: 'Times New Roman', serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gothic);
+    background: var(--pink-light);
+    padding: 0.6rem 1.6rem;
+    border: none;
+    cursor: none;
+    transition: all 0.3s;
+  }
+  .nav-cta:hover { background: var(--pink); box-shadow: 0 0 30px rgba(242,184,198,0.35); }
+
+  /* ─── HERO ─── */
+  .hero {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4rem;
+    overflow: hidden;
+  }
+
+  .hero-content {
+    text-align: center;
+    max-width: 900px;
+    animation: heroReveal 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+  }
+  @keyframes heroReveal {
+    from { opacity:0; transform:translateY(40px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+
+  .hero-eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.55em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 2rem;
+    opacity: 0.8;
+  }
+
+  .hero-title {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: clamp(4rem, 10vw, 9rem);
+    font-weight: 400;
+    line-height: 0.92;
+    letter-spacing: -0.01em;
+    color: var(--cream);
+    margin-bottom: 1rem;
+  }
+
+  .hero-title .gothic-word {
+    font-family: 'UnifrakturMaguntia', cursive;
+    color: var(--pink);
+    display: block;
+    font-size: clamp(3.5rem, 9vw, 8rem);
+    text-shadow:
+      0 0 60px rgba(242,184,198,0.45),
+      0 0 120px rgba(242,184,198,0.18);
+    animation: glowPulse 4s ease-in-out infinite;
+  }
+  @keyframes glowPulse {
+    0%,100% { text-shadow: 0 0 60px rgba(242,184,198,0.45), 0 0 120px rgba(242,184,198,0.18); }
+    50%      { text-shadow: 0 0 80px rgba(242,184,198,0.7), 0 0 160px rgba(242,184,198,0.28); }
+  }
+
+  .hero-sub {
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--cream-warm);
+    letter-spacing: 0.1em;
+    margin: 2.5rem auto;
+    max-width: 480px;
+    opacity: 0.65;
+    line-height: 1.9;
+  }
+
+  .hero-btns {
+    display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;
+    margin-top: 3rem;
+  }
+
+  .btn-primary {
+    font-family: 'Times New Roman', serif;
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    padding: 1.1rem 3rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    color: var(--pink-light);
+    cursor: none;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 0.4s;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-primary::before {
+    content:''; position:absolute; inset:0;
+    background: linear-gradient(135deg, var(--glass-shine) 0%, transparent 60%);
+    opacity: 0; transition: opacity 0.4s;
+  }
+  .btn-primary:hover { border-color: var(--pink); color: var(--cream); box-shadow: 0 8px 40px rgba(242,184,198,0.18), inset 0 1px 0 var(--glass-shine); }
+  .btn-primary:hover::before { opacity:1; }
+
+  .btn-ghost {
+    font-family: 'Times New Roman', serif;
+    font-size: 0.8rem;
+    font-style: italic;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 1.1rem 3rem;
+    background: transparent;
+    border: 1px solid rgba(242,184,198,0.18);
+    color: var(--pink-light);
+    cursor: none;
+    transition: all 0.4s;
+    text-decoration: none;
+    display: inline-block;
+    opacity: 0.55;
+  }
+  .btn-ghost:hover { opacity:1; border-color: var(--pink-deep); color: var(--pink); }
+
+  /* Arch ornament */
+  .arch-ornament {
+    position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
+    width: 300px; opacity: 0.09;
+  }
+
+  /* ─── MARQUEE ─── */
+  .marquee-wrap {
+    position: relative; z-index: 1;
+    overflow: hidden;
+    padding: 1.4rem 0;
+    border-top: 1px solid rgba(242,184,198,0.12);
+    border-bottom: 1px solid rgba(242,184,198,0.12);
+    background: rgba(242,184,198,0.03);
+    backdrop-filter: blur(4px);
+  }
+  .marquee-track {
+    display: flex; gap: 4rem;
+    animation: marqueeRun 38s linear infinite;
+    width: max-content;
+  }
+  @keyframes marqueeRun { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+
+  .marquee-item {
+    font-size: 0.68rem;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: var(--pink-deep);
+    white-space: nowrap;
+    font-style: italic;
+  }
+  .marquee-sep { color: var(--pink); font-size: 0.9rem; line-height: 1; opacity: 0.7; }
+
+  /* ─── SCROLL INDICATOR ─── */
+  .scroll-indicator {
+    position: absolute; bottom: 3rem; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
+    opacity: 0.35;
+    animation: fadeIn 2s 1.5s both;
+  }
+  @keyframes fadeIn { from{opacity:0;} to{opacity:0.35;} }
+  .scroll-text { font-size: 0.6rem; letter-spacing: 0.5em; text-transform: uppercase; color: var(--cream-warm); }
+  .scroll-line {
+    width: 1px; height: 50px;
+    background: linear-gradient(180deg, var(--pink-deep), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%,100%{transform:scaleY(1);opacity:1;}
+    50%{transform:scaleY(0.5);opacity:0.4;}
+  }
+
+  /* ─── SECTIONS ─── */
+  .section { position: relative; z-index: 1; padding: 7rem 4rem; }
+
+  .section-label {
+    font-size: 0.7rem; letter-spacing: 0.55em; text-transform: uppercase;
+    color: var(--pink); margin-bottom: 1rem; opacity: 0.7;
+  }
+  .section-title {
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 400; line-height: 1.05; margin-bottom: 1.5rem;
+  }
+  .section-title em {
+    font-family: 'UnifrakturMaguntia', cursive;
+    font-style: normal; color: var(--pink);
+  }
+
+  /* ─── COLLECTION GRID ─── */
+  .collection-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1.5px; margin-top: 4rem;
+  }
+
+  .card { position: relative; aspect-ratio: 3/4; overflow: hidden; cursor: none; }
+  .card-bg { position: absolute; inset: 0; transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1); }
+  .card:hover .card-bg { transform: scale(1.06); }
+
+  .card-bg-1 {
+    background:
+      radial-gradient(ellipse 100% 60% at 50% 0%, rgba(201,125,150,0.35) 0%, transparent 50%),
+      linear-gradient(180deg, rgba(232,160,180,0.4) 0%, rgba(10,10,15,0.92) 100%),
+      repeating-linear-gradient(90deg, rgba(242,184,198,0.03) 0, rgba(242,184,198,0.03) 1px, transparent 1px, transparent 80px),
+      var(--gothic-soft);
+  }
+  .card-bg-2 {
+    background:
+      radial-gradient(ellipse 80% 50% at 30% 20%, rgba(250,212,223,0.22) 0%, transparent 60%),
+      linear-gradient(160deg, rgba(10,10,15,0.7) 0%, rgba(201,125,150,0.35) 100%),
+      repeating-linear-gradient(0deg, rgba(242,184,198,0.025) 0, rgba(242,184,198,0.025) 1px, transparent 1px, transparent 60px),
+      var(--gothic-mid);
+  }
+  .card-bg-3 {
+    background:
+      radial-gradient(ellipse 90% 70% at 70% 30%, rgba(232,160,180,0.28) 0%, transparent 55%),
+      linear-gradient(200deg, rgba(201,125,150,0.4) 0%, rgba(10,10,15,0.95) 100%),
+      var(--gothic-soft);
+  }
+
+  .card-arch {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 80%; height: 70%; opacity: 0.07; transition: opacity 0.5s;
+  }
+  .card:hover .card-arch { opacity: 0.18; }
+
+  .card-glass {
+    position: absolute; inset: 0;
+    background: linear-gradient(160deg, rgba(255,255,255,0.04) 0%, transparent 50%);
+    border: 1px solid rgba(242,184,198,0.13);
+  }
+
+  .card-content {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 2.5rem 2rem;
+    background: linear-gradient(0deg, rgba(10,10,15,0.96) 0%, transparent 100%);
+    transform: translateY(20px); opacity: 0;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .card:hover .card-content { opacity:1; transform:translateY(0); }
+
+  .card-collection { font-size: 0.65rem; letter-spacing: 0.5em; text-transform: uppercase; color: var(--pink); margin-bottom: 0.5rem; }
+  .card-name { font-size: 1.6rem; font-weight: 400; line-height: 1.1; margin-bottom: 0.5rem; }
+  .card-name em { font-family: 'UnifrakturMaguntia', cursive; font-style: normal; color: var(--pink-light); font-size: 1.3rem; }
+  .card-price { font-style: italic; color: var(--pink-deep); font-size: 0.9rem; letter-spacing: 0.1em; }
+
+  .card-num {
+    position: absolute; top: 1.5rem; left: 1.5rem;
+    font-family: 'UnifrakturMaguntia', cursive; font-size: 3rem;
+    color: var(--pink); opacity: 0.13; line-height: 1;
+  }
+  .card-tag {
+    position: absolute; top: 1.5rem; right: 1.5rem;
+    font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--cream-warm);
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    padding: 0.3rem 0.7rem; backdrop-filter: blur(8px);
+  }
+
+  /* ─── STATEMENT SECTION ─── */
+  .statement-section {
+    position: relative; z-index: 1;
+    padding: 8rem 4rem;
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 6rem; align-items: center;
+    border-top: 1px solid rgba(242,184,198,0.07);
+  }
+
+  .statement-visual { position: relative; aspect-ratio: 4/5; }
+
+  .arch-frame {
+    position: absolute; inset: 0;
+    border: 1px solid rgba(242,184,198,0.2);
+    clip-path: polygon(0 15%, 50% 0%, 100% 15%, 100% 100%, 0 100%);
+    background:
+      radial-gradient(ellipse 80% 50% at 50% 20%, rgba(201,125,150,0.2) 0%, transparent 60%),
+      linear-gradient(180deg, rgba(232,160,180,0.22) 0%, rgba(10,10,15,0.85) 100%);
+    overflow: hidden;
+  }
+  .arch-frame::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:40%;
+    background: radial-gradient(ellipse 70% 100% at 50% 0%, rgba(242,184,198,0.13) 0%, transparent 100%);
+  }
+  .arch-frame-border {
+    position: absolute; inset: 0;
+    clip-path: polygon(0 15%, 50% 0%, 100% 15%, 100% 100%, 0 100%);
+    border: 1.5px solid rgba(242,184,198,0.32);
+    background: transparent; pointer-events: none;
+  }
+  .arch-inner-decoration { position:absolute; top:8%; left:50%; transform:translateX(-50%); text-align:center; }
+  .arch-inner-decoration .gothic-ornament {
+    font-family:'UnifrakturMaguntia',cursive; font-size:4rem;
+    color:var(--pink); opacity:0.18; display:block;
+  }
+
+  .visual-float-tag {
+    position:absolute; right:-3rem; top:35%;
+    writing-mode:vertical-rl; font-size:0.65rem;
+    letter-spacing:0.4em; text-transform:uppercase;
+    color:var(--pink-deep); opacity:0.55;
+  }
+
+  .statement-text { padding-left: 2rem; }
+
+  .statement-quote {
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    font-style: italic; font-weight: 400; line-height: 1.35;
+    color: var(--cream); margin-bottom: 2.5rem; opacity: 0.9;
+  }
+  .statement-quote span { font-family:'UnifrakturMaguntia',cursive; font-style:normal; color:var(--pink); }
+
+  .statement-body {
+    font-size: 0.9rem; line-height: 2;
+    color: var(--cream-warm); opacity: 0.5;
+    margin-bottom: 3rem; letter-spacing: 0.02em;
+  }
+
+  /* ─── STATS ─── */
+  .stats-row { display:flex; gap:1.5rem; flex-wrap:wrap; margin-top:4rem; }
+  .stat-glass {
+    flex:1; min-width:140px;
+    background:var(--glass-bg); border:1px solid var(--glass-border);
+    backdrop-filter:blur(var(--blur)); -webkit-backdrop-filter:blur(var(--blur));
+    padding:1.8rem 1.5rem; position:relative; overflow:hidden;
+  }
+  .stat-glass::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:1px;
+    background:linear-gradient(90deg,transparent,var(--glass-shine),transparent);
+  }
+  .stat-num { font-family:'UnifrakturMaguntia',cursive; font-size:2.8rem; color:var(--pink); line-height:1; display:block; margin-bottom:0.3rem; }
+  .stat-label { font-size:0.65rem; letter-spacing:0.35em; text-transform:uppercase; color:var(--cream-warm); opacity:0.5; font-style:italic; }
+
+  /* ─── PANELS ─── */
+  .panels-section {
+    position:relative; z-index:1; padding:6rem 4rem;
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem;
+    border-top:1px solid rgba(242,184,198,0.06);
+  }
+
+  .panel-glass {
+    background:var(--glass-bg); border:1px solid var(--glass-border);
+    backdrop-filter:blur(var(--blur)); -webkit-backdrop-filter:blur(var(--blur));
+    padding:3rem 2.5rem; position:relative; overflow:hidden;
+    transition:all 0.4s cubic-bezier(0.16,1,0.3,1); cursor:none;
+  }
+  .panel-glass::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:1px;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);
+  }
+  .panel-glass:hover {
+    background:rgba(242,184,198,0.15); border-color:rgba(242,184,198,0.45);
+    transform:translateY(-4px); box-shadow:0 20px 60px rgba(201,125,150,0.13);
+  }
+
+  .panel-icon { font-family:'UnifrakturMaguntia',cursive; font-size:2.5rem; color:var(--pink); margin-bottom:1.5rem; display:block; opacity:0.75; }
+  .panel-title { font-size:1.25rem; font-weight:400; margin-bottom:1rem; line-height:1.2; }
+  .panel-title em { font-family:'UnifrakturMaguntia',cursive; font-style:normal; color:var(--pink-light); }
+  .panel-text { font-size:0.85rem; line-height:1.9; color:var(--cream-warm); opacity:0.48; font-style:italic; }
+
+  /* ─── NEWSLETTER ─── */
+  .newsletter-section {
+    position:relative; z-index:1; margin:0 4rem 6rem;
+    background:var(--glass-bg); border:1px solid var(--glass-border);
+    backdrop-filter:blur(var(--blur)); -webkit-backdrop-filter:blur(var(--blur));
+    padding:4rem 5rem;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:3rem; flex-wrap:wrap; overflow:hidden;
+  }
+  .newsletter-section::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:1px;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.14),transparent);
+  }
+  .newsletter-section::after {
+    content:'Ꭶ';
+    position:absolute; right:4rem; top:50%; transform:translateY(-50%);
+    font-family:'UnifrakturMaguntia',cursive; font-size:10rem;
+    color:var(--pink); opacity:0.04; line-height:1; pointer-events:none;
+  }
+
+  .newsletter-text h3 { font-size:1.8rem; font-weight:400; margin-bottom:0.5rem; }
+  .newsletter-text h3 em { font-family:'UnifrakturMaguntia',cursive; font-style:normal; color:var(--pink); }
+  .newsletter-text p { font-size:0.85rem; font-style:italic; color:var(--cream-warm); opacity:0.5; letter-spacing:0.05em; }
+
+  .newsletter-form { display:flex; gap:0; flex-shrink:0; }
+  .newsletter-input {
+    font-family:'Times New Roman',serif; font-style:italic; font-size:0.85rem;
+    letter-spacing:0.1em; padding:1rem 1.5rem;
+    background:rgba(10,10,15,0.65); border:1px solid rgba(242,184,198,0.22);
+    border-right:none; color:var(--cream); width:260px; outline:none;
+    transition:border-color 0.3s;
+  }
+  .newsletter-input::placeholder { color:var(--pink-deep); opacity:0.5; }
+  .newsletter-input:focus { border-color:rgba(242,184,198,0.5); }
+  .newsletter-btn {
+    font-family:'Times New Roman',serif; font-size:0.72rem; letter-spacing:0.35em;
+    text-transform:uppercase; padding:1rem 2rem; background:var(--pink-deep);
+    border:1px solid var(--pink-deep); color:var(--cream); cursor:none; transition:all 0.3s; white-space:nowrap;
+  }
+  .newsletter-btn:hover { background:var(--pink); border-color:var(--pink); color:var(--gothic); }
+
+  /* ─── DIVIDER ─── */
+  .section-divider {
+    position:relative; z-index:1; display:flex; align-items:center; gap:2rem;
+    padding:0 4rem; margin:2rem 0; opacity:0.28;
+  }
+  .section-divider::before, .section-divider::after {
+    content:''; flex:1; height:1px;
+    background:linear-gradient(90deg,transparent,var(--pink-deep),transparent);
+  }
+  .divider-glyph { font-family:'UnifrakturMaguntia',cursive; font-size:1.2rem; color:var(--pink); }
+
+  /* ─── FOOTER ─── */
+  footer {
+    position:relative; z-index:1; padding:5rem 4rem 3rem;
+    border-top:1px solid rgba(242,184,198,0.09);
+    background:rgba(10,10,15,0.6); backdrop-filter:blur(8px);
+  }
+  .footer-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5rem; flex-wrap:wrap; gap:3rem; }
+  .footer-brand { max-width:280px; }
+  .footer-logo { font-family:'UnifrakturMaguntia',cursive; font-size:2.5rem; color:var(--pink); display:block; margin-bottom:1rem; text-shadow:0 0 30px rgba(242,184,198,0.28); }
+  .footer-tagline { font-size:0.8rem; font-style:italic; color:var(--cream-warm); opacity:0.38; line-height:1.8; letter-spacing:0.05em; }
+  .footer-cols { display:flex; gap:5rem; flex-wrap:wrap; }
+  .footer-col h4 { font-size:0.65rem; letter-spacing:0.45em; text-transform:uppercase; color:var(--pink); margin-bottom:1.5rem; font-weight:400; opacity:0.65; }
+  .footer-col ul { list-style:none; }
+  .footer-col li { margin-bottom:0.75rem; }
+  .footer-col a { font-size:0.85rem; font-style:italic; color:var(--cream-warm); text-decoration:none; opacity:0.38; transition:opacity 0.3s; letter-spacing:0.03em; }
+  .footer-col a:hover { opacity:0.9; }
+  .footer-bottom { display:flex; justify-content:space-between; align-items:center; padding-top:2rem; border-top:1px solid rgba(242,184,198,0.07); flex-wrap:wrap; gap:1rem; }
+  .footer-copy { font-size:0.7rem; color:var(--pink-deep); opacity:0.38; letter-spacing:0.15em; font-style:italic; }
+  .footer-gothic-mark { font-family:'UnifrakturMaguntia',cursive; font-size:1rem; color:var(--pink); opacity:0.28; }
+
+  /* ─── REVEAL ─── */
+  .reveal { opacity:0; transform:translateY(30px); transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
+  .reveal.visible { opacity:1; transform:translateY(0); }
+  .reveal-delay-1 { transition-delay:0.1s; }
+  .reveal-delay-2 { transition-delay:0.2s; }
+  .reveal-delay-3 { transition-delay:0.3s; }
+
+  /* ─── BOTTLE SILHOUETTE ─── */
+  .hero-bottle {
+    position:absolute; bottom: 0; right: 8%;
+    width: 180px; opacity: 0.12;
+    animation: bottleFloat 6s ease-in-out infinite;
+  }
+  @keyframes bottleFloat {
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-18px);}
+  }
+
+  @media(max-width:900px){
+    nav{padding:0 2rem;}
+    .nav-links{display:none;}
+    .hero{padding:0 2rem;}
+    .section{padding:5rem 2rem;}
+    .collection-grid{grid-template-columns:1fr 1fr;}
+    .statement-section{grid-template-columns:1fr;padding:5rem 2rem;}
+    .panels-section{grid-template-columns:1fr;padding:4rem 2rem;}
+    .newsletter-section{margin:0 2rem 4rem;padding:3rem 2rem;}
+    footer{padding:4rem 2rem 2rem;}
+    .footer-top{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="bg-layer"></div>
+<div class="grid-overlay"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Semu</div>
+  <ul class="nav-links">
+    <li><a href="#">Fragrance</a></li>
+    <li><a href="#">Atelier</a></li>
+    <li><a href="#">Heritage</a></li>
+    <li><a href="#">Editorial</a></li>
+    <li><a href="#">Boutique</a></li>
+  </ul>
+  <button class="nav-cta">Discover</button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <p class="hero-eyebrow">Eau de Parfum — Édition Noire</p>
+    <h1 class="hero-title">
+      SCENT Like <br>
+      <span class="gothic-word">gual habete</span>
+    </h1>
+    <p class="hero-sub">
+      A duality of semhar flower and habeshan nostalgia — where coquette softness meets 
+      semetic grace. A scent that lingers like a secret kept.
+    </p>
+    <div class="hero-btns">
+      <a href="#" class="btn-primary">Explore the Fragrance</a>
+      <a href="#" class="btn-ghost">View Lookbook</a>
+    </div>
+  </div>
+
+  <!-- Decorative arch -->
+  <svg class="arch-ornament" viewBox="0 0 300 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 200 L10 100 Q10 10 150 10 Q290 10 290 100 L290 200" stroke="#F2B8C6" stroke-width="1.5" fill="none"/>
+    <path d="M40 200 L40 110 Q40 40 150 40 Q260 40 260 110 L260 200" stroke="#F2B8C6" stroke-width="0.5" fill="none" opacity="0.5"/>
+    <line x1="150" y1="10" x2="150" y2="0" stroke="#F2B8C6" stroke-width="1"/>
+    <circle cx="150" cy="10" r="4" fill="#F2B8C6" opacity="0.55"/>
+  </svg>
+
+  <!-- Floating perfume bottle silhouette -->
+  <svg class="hero-bottle" viewBox="0 0 120 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="45" y="0" width="30" height="18" rx="4" fill="#F2B8C6"/>
+    <rect x="50" y="18" width="20" height="12" rx="2" fill="#F2B8C6"/>
+    <path d="M20 60 Q20 30 60 30 Q100 30 100 60 L100 240 Q100 260 60 260 Q20 260 20 240 Z" fill="#F2B8C6"/>
+    <path d="M35 80 Q35 55 60 55 Q85 55 85 80 L85 220 Q85 240 60 240 Q35 240 35 220 Z" fill="#FAD4DF" opacity="0.4"/>
+    <line x1="60" y1="100" x2="60" y2="200" stroke="#FAF0E6" stroke-width="0.5" opacity="0.3"/>
+  </svg>
+
+  <div class="scroll-indicator">
+    <div class="scroll-line"></div>
+    <span class="scroll-text">Scroll</span>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item">GUAL HABTE</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">ERITRAN NATIONALISM</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">YETEMARE YEGDELEGN</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">UNDER COVER SHABYA</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">SEMU LEBE</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">NIGGAS IN SARIS</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">ALMOST 10MM</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">UNNECCERY PERSON</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">FREE BY BOI LEUL</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">'SET ME FREE' SEMERE</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">MEBA ABATU MANEW</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">GUAD SHALEKA DAGNA</span><span class="marquee-sep">✦</span>
+    <!-- duplicate for seamless loop -->
+    <span class="marquee-item">GUAL HABTE</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">ERITRAN NATIONALISM</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">YETEMARE YEGDELEGN</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">UNDER COVER SHABYA</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">SEMU LEBE</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">NIGGAS IN SARIS</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">ALMOST 10MM</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">UNNECCERY PERSON</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">FREE BY BOI LEUL</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">'SET ME FREE' SEMERE</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">MEBA ABATU MANEW</span><span class="marquee-sep">✦</span>
+    <span class="marquee-item">GUAD SHALEKA DAGNA</span><span class="marquee-sep">✦</span>
+  </div>
+</div>
+
+<!-- COLLECTION GRID -->
+<section class="section">
+  <p class="section-label reveal">The Fragrance Edit</p>
+  <h2 class="section-title reveal reveal-delay-1"> <em>semu's</em><br>Collection</h2>
+
+  <div class="collection-grid">
+
+    <div class="card reveal">
+      <div class="card-bg card-bg-1"></div>
+      <svg class="card-arch" viewBox="0 0 200 280" fill="none">
+        <path d="M10 280 L10 140 Q10 10 100 10 Q190 10 190 140 L190 280" stroke="#F2B8C6" stroke-width="1" fill="none"/>
+        <path d="M30 280 L30 150 Q30 40 100 40 Q170 40 170 150 L170 280" stroke="#F2B8C6" stroke-width="0.5" fill="none"/>
+      </svg>
+      <div class="card-glass"></div>
+      <span class="card-num">I</span>
+      <span class="card-tag">Signature</span>
+      <div class="card-content">
+        <p class="card-collection">The Original</p>
+        <h3 class="card-name">Semu <em>Noire</em></h3>
+        <p class="card-price">from €180</p>
+      </div>
+    </div>
+
+    <div class="card reveal reveal-delay-1">
+      <div class="card-bg card-bg-2"></div>
+      <svg class="card-arch" viewBox="0 0 200 280" fill="none">
+        <path d="M20 280 L20 130 Q20 10 100 10 Q180 10 180 130 L180 280" stroke="#F2B8C6" stroke-width="1.2" fill="none"/>
+        <circle cx="100" cy="10" r="5" fill="#F2B8C6" opacity="0.4"/>
+      </svg>
+      <div class="card-glass"></div>
+      <span class="card-num">II</span>
+      <span class="card-tag">Exclusive</span>
+      <div class="card-content">
+        <p class="card-collection">Coquette Line</p>
+        <h3 class="card-name">Reshida <em>Gothique</em></h3>
+        <p class="card-price">from €240</p>
+      </div>
+    </div>
+
+    <div class="card reveal reveal-delay-2">
+      <div class="card-bg card-bg-3"></div>
+      <svg class="card-arch" viewBox="0 0 200 280" fill="none">
+        <path d="M15 280 L15 135 Q15 15 100 15 Q185 15 185 135 L185 280" stroke="#F2B8C6" stroke-width="1" fill="none"/>
+        <path d="M45 280 L45 150 Q45 55 100 55 Q155 55 155 150 L155 280" stroke="#F2B8C6" stroke-width="0.4" fill="none"/>
+      </svg>
+      <div class="card-glass"></div>
+      <span class="card-num">III</span>
+      <span class="card-tag">Limited</span>
+      <div class="card-content">
+        <p class="card-collection">editors choice</p>
+        <h3 class="card-name">DEHAB <em>Obscura</em></h3>
+        <p class="card-price">from €155</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- STATEMENT SECTION -->
+<section class="statement-section">
+  <div class="statement-visual reveal">
+    <div class="arch-frame">
+      <div class="arch-inner-decoration">
+        <span class="gothic-ornament">S</span>
+      </div>
+    </div>
+    <div class="arch-frame-border"></div>
+    <div class="visual-float-tag">Édition Noire MMXXVI</div>
+
+    <div style="position:absolute;bottom:2rem;left:-2rem;background:rgba(10,10,15,0.88);border:1px solid rgba(242,184,198,0.28);padding:1rem 1.4rem;backdrop-filter:blur(12px);">
+      <span style="font-family:'UnifrakturMaguntia',cursive;font-size:1.8rem;color:var(--pink);display:block;line-height:1;">invite only</span>
+      <span style="font-size:0.6rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--cream-warm);opacity:0.5;font-style:italic;">SEMAHR FLOWER EXTRACT</span>
+    </div>
+  </div>
+
+  <div class="statement-text">
+    <p class="section-label reveal">The Philosophy</p>
+    <blockquote class="statement-quote reveal reveal-delay-1">
+      "Soft as a <span>ribbon</span>,<br>dark as a<br>cathedral shadow."
+    </blockquote>
+    
+    <p class="statement-body reveal reveal-delay-2">
+  <span style="color: rgb(255, 255, 255);">Semu</span> was born from the tension between emerging lonigngness for home and the desire to bring home land scent abord.
+  we blend orginal eritran scent with the 'Semhar'flower beign our primery node, in combination with our sister campony <span style="color: gold;">DEHAB'S GOLD</span>, WE BRING <span style="color: rgb(250, 88, 88);">HAB</span><span style="color: rgb(126, 255, 126);">ES</span><span style="color:rgb(116, 116, 249);">HAN</span> EXELLENCE ABORD.
+</p>
+    <a href="#" class="btn-primary reveal reveal-delay-3" style="font-size:0.75rem;">Read Our Story</a>
+
+    <div class="stats-row">
+      <div class="stat-glass reveal reveal-delay-1">
+        <span class="stat-num">nakfa</span>
+        <span class="stat-label">mountains of resiliance</span>
+      </div>
+      <div class="stat-glass reveal reveal-delay-2">
+        <span class="stat-num">reshida</span>
+        <span class="stat-label">DESERT NOMADS</span>
+      </div>
+      <div class="stat-glass reveal reveal-delay-3">
+        <span class="stat-num">firtuna</span>
+        <span class="stat-label">Moods Within</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PANELS -->
+<section class="panels-section">
+  <div class="panel-glass reveal">
+    <span class="panel-icon" style="color: #fffb80;">✿</span>
+    <h3 class="panel-title">Rose <em>Heart</em></h3>
+    <p class="panel-text">eritran rose absolute — the soft, almost edible sweetness that sits at the centre of every Semu composition.</p>
+  </div>
+  <div class="panel-glass reveal reveal-delay-1">
+    <span class="panel-icon" style="color: #fffb80;">✦</span>
+    <h3 class="panel-title">Reshida <em>Base</em></h3>
+    <p class="panel-text">Black amber, vetiver, and dark musk anchor the coquette softness — the shadow beneath the ribbon.</p>
+  </div>
+  <div class="panel-glass reveal reveal-delay-2">
+    <span class="panel-icon" style="color: #fffb80;">☽</span>
+    <h3 class="panel-title">Asmera's <em>veil</em></h3>
+    <p class="panel-text">Sandalwood and orris root wrap the whole accord in a powdery, skin-close warmth — worn, not displayed.</p>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<div class="newsletter-section reveal">
+  <div class="newsletter-text">
+    <h3>Enter the <em>Sanctum</em></h3>
+    <p>First access to limited editions, editorial drops & private events.</p>
+  </div>
+  <div class="newsletter-form">
+    <input class="newsletter-input" type="email" placeholder="Your address…">
+    <button class="newsletter-btn">Subscribe</button>
+  </div>
+</div>
+
+<!-- DIVIDER -->
+<div class="section-divider">
+  <span class="divider-glyph">✦</span>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <span class="footer-logo">Semu</span>
+      <p class="footer-tagline">
+        Gothic tenderness, bottled.<br>
+        Where rose meets shadow and softness meets depth.
+      </p>
+    </div>
+    <div class="footer-cols">
+      <div class="footer-col">
+        <h4>Fragrance</h4>
+        <ul>
+          <li><a href="#">Semu Noire</a></li>
+          <li><a href="#">Rose Gothique</a></li>
+          <li><a href="#">Lebe Obscura</a></li>
+          <li><a href="#">Archive</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Atelier</h4>
+        <ul>
+          <li><a href="#">Our Story</a></li>
+          <li><a href="#">Bespoke</a></li>
+          <li><a href="#">Perfumers</a></li>
+          <li><a href="#">Locations</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Client</h4>
+        <ul>
+          <li><a href="#">My Account</a></li>
+          <li><a href="#">Orders</a></li>
+          <li><a href="#">Appointments</a></li>
+          <li><a href="#">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© MMXXVI Semu Maison. All rights reserved.</span>
+    <span class="footer-gothic-mark">S</span>
+    <span class="footer-copy">Crafted with intention, a design by <span style='color: #ffe205; filter: brightness(1.5rem); font-size:larger;'>MADRA</span> · Privacy Policy</span>
+  </div>
+</footer>
+
+<script>
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+
+  document.addEventListener('mousemove',e=>{
+    mx=e.clientX; my=e.clientY;
+    cursor.style.left=mx-6+'px';
+    cursor.style.top=my-6+'px';
+  });
+
+  (function animateRing(){
+    rx+=(mx-rx-18)*0.12;
+    ry+=(my-ry-18)*0.12;
+    ring.style.left=rx+'px';
+    ring.style.top=ry+'px';
+    requestAnimationFrame(animateRing);
+  })();
+
+  document.querySelectorAll('a,button,.card,.panel-glass').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{
+      cursor.style.transform='scale(2.5)';
+      ring.style.transform='scale(1.5)';
+      ring.style.borderColor='var(--pink)';
+    });
+    el.addEventListener('mouseleave',()=>{
+      cursor.style.transform='scale(1)';
+      ring.style.transform='scale(1)';
+      ring.style.borderColor='var(--pink-light)';
+    });
+  });
+
+  const reveals=document.querySelectorAll('.reveal');
+  new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+  },{threshold:0.12}).observe? reveals.forEach(el=>new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+  },{threshold:0.12}).observe(el)):null;
+
+  // Simpler fallback
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+  },{threshold:0.1});
+  reveals.forEach(el=>obs.observe(el));
+</script>
+</body>
+</html>
